@@ -7,6 +7,7 @@ using namespace std;
 
 const int MAX_SIZE = 10;
 const int MAX_NAME = 100;
+const int LEADERBOARD_SIZE = 5;
 
 void clearBoard(int board[MAX_SIZE][MAX_SIZE], int size) {
 	for (int i = 0; i < size; i++) {
@@ -15,6 +16,7 @@ void clearBoard(int board[MAX_SIZE][MAX_SIZE], int size) {
 		}
 	}
 }
+
 void printBoard(int board[MAX_SIZE][MAX_SIZE], int size, int score) {
 	cout << "\nScore: " << score << "\n\n";
 	for (int i = 0; i < size; i++) {
@@ -44,7 +46,10 @@ void addRandomTile(int board[MAX_SIZE][MAX_SIZE], int size) {
 		return;
 	}
 
-	// TODO: rand logic
+	int index = rand() % count;
+	int value = (rand() % 10 < 8) ? 2 : 4;
+
+	board[emptyRow[index]][emptyCol[index]] = value;
 }
 
 bool hasMoves(int board[MAX_SIZE][MAX_SIZE], int size) {
@@ -79,10 +84,71 @@ bool moveDown(int board[MAX_SIZE][MAX_SIZE], int size, int& score) {
 }
 
 void updateLeaderboard(const char name[], int score, int size) {
+	char filename[50];
+	// buildLeaderboardFilename(filename, size); TODO...
 
+	char names[LEADERBOARD_SIZE][MAX_NAME];
+	int scores[LEADERBOARD_SIZE];
+	int count = 0;
+
+	ifstream inFile(filename);
+	while (inFile >> names[count] >> scores[count]) {
+		count++;
+	}
+	inFile.close();
+
+	int pos = count;
+	for (int i = 0; i < count; i++) {
+		if (score > scores[i]) {
+			pos = i;
+			break;
+		}
+	}
+
+	if (pos >= LEADERBOARD_SIZE) {
+		return;
+	}
+
+	for (int i = LEADERBOARD_SIZE - 1; i > pos; i--) {
+		myStrcpy(names[i], names[i - 1]);
+		scores[i] = scores[i - 1];
+	}
+
+	myStrcpy(names[pos], name);
+	scores[pos] = score;
+
+	if (count < LEADERBOARD_SIZE) {
+		count++;
+	}
+
+	ofstream outFile(filename);
+	for (int i = 0; i < count; i++) {
+		outFile << names[i] << " " << scores[i] << "\n";
+	}
 }
-void showLeaderboard() {
 
+void showLeaderboard() {
+	int size;
+	cout << "Board size: ";
+	cin >> size;
+
+	char filename[50];
+	// buildLeaderboardFilename(filename, size); TODO...
+
+	ifstream file(filename);
+	if (!file.is_open()) {
+		cout << "No such board exists.\n";
+		return;
+	}
+
+	char name[MAX_NAME];
+	int score;
+
+	cout << "\nLeaderboard " << size << "x" << size << ":\n";
+	while (file >> name >> score) {
+		cout << name << " - " << score << "\n";
+	}
+	file.close();
 }
 
 void startGame() {
